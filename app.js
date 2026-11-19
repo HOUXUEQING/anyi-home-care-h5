@@ -264,7 +264,6 @@
       startTime: '09:00',
       serviceDays: 5,
       patient: { ...p, age: calcAge(p.birthday) || '78', selfCare: '半自理' },
-      health: '半自理',
       needs: ['术后照护', '夜间看护'],
       staffGender: '随机分配',
       materials: [],
@@ -291,7 +290,6 @@
       startTime: o.startTime,
       serviceDays: o.serviceDays || 5,
       patient: { ...o.patient, age: calcAge(o.patient.birthday) || o.patient.age, selfCare: o.patient.selfCare || '半自理' },
-      health: o.health || o.patient.selfCare || '半自理',
       needs: [...(o.needs || [])],
       staffGender: o.staffGender || '随机分配',
       materials: [...(o.materials || [])],
@@ -413,6 +411,65 @@
       <div class="sheet__body city-picker"><div class="city-picker__col" id="city-province-list">${provinces.map((x) => `<button type="button" class="city-option city-prov ${x === p ? 'is-on' : ''}" data-act="pick-province" data-value="${esc(x)}">${esc(x)}</button>`).join('')}</div><div class="city-picker__col" id="city-city-list">${map[p].map((x) => `<button type="button" class="city-option city-city ${x === c ? 'is-on' : ''}" data-act="pick-city" data-value="${esc(x)}">${esc(x)}</button>`).join('')}</div></div>
       <div class="sheet__foot"><button class="btn btn--ghost" data-act="close-sheet">取消</button><button class="btn btn--primary" data-act="confirm-city">确定</button></div>`);
   }
+  function captureDraftForm() {
+    if (!draft) return;
+    if ($('#province')) draft.province = $('#province').value;
+    if ($('#city')) draft.city = $('#city').value;
+    if ($('#district')) draft.district = $('#district').value;
+    if ($('#address')) draft.address = $('#address').value.trim();
+    const st = $('#serviceTime');
+    if (st && st.value) {
+      const [d, t] = st.value.split('T');
+      draft.startDate = d;
+      draft.startTime = t;
+    }
+    const note = $('#note');
+    if (note) draft.note = note.value;
+  }
+  function openMapPage() {
+    captureDraftForm();
+    go('/map');
+  }
+  function mapView() {
+    const city = draft?.city || '北京市';
+    const district = draft?.district || '朝阳区';
+    const all = D.nearbyPlaces || [];
+    let places = all.filter((p) => p.city === city && p.district === district);
+    if (!places.length) places = all.filter((p) => p.city === city);
+    if (!places.length) places = all.slice(0, 3);
+    setTimeout(() => { if (location.hash === '#/map') requestLocation(); }, 350);
+    return page(`${titlebar('选择服务地址', '#/book')}
+      <div class="map-page">
+        <div class="map-canvas">
+          <span class="map-road map-road--h"></span><span class="map-road map-road--v"></span>
+          <span class="map-block map-block--a"></span><span class="map-block map-block--b"></span><span class="map-block map-block--c"></span>
+          <div class="map-current"><span class="map-current__dot"></span><b>${esc(city)} ${esc(district)}</b><small id="loc-status">点击定位获取当前位置</small></div>
+          <div class="map-pin">${icon('home')}<span>当前位置</span></div>
+          <button type="button" class="map-locate" data-act="locate-me">${icon('pin')}重新定位</button>
+        </div>
+        <div class="map-panel">
+          <div class="map-panel__head"><div><b>附近地址</b><span>选择后自动填入预约页面</span></div><span class="map-panel__hint">${places.length} 个结果</span></div>
+          <div class="map-list">${places.map((p) => `<button type="button" class="map-place" data-act="pick-place" data-value="${esc(p.address)}"><span class="map-place__icon">${icon('pin')}</span><div><b>${esc(p.name)}</b><span>${esc(p.address)}</span><small>距当前位置约 ${esc(p.distance || '500m')}</small></div>${icon('chevR')}</button>`).join('')}</div>
+        </div>
+        <p class="map-tip">${icon('info')} 演示版地图为模拟定位；正式版接入地图 SDK 后可按真实位置推荐附近地址。</p>
+      </div>`);
+  }
+
+  function requestLocation() {
+    const status = $('#loc-status');
+    if (!navigator.geolocation) {
+      if (status) status.textContent = '当前浏览器不支持定位';
+      toast('当前浏览器不支持定位');
+      return;
+    }
+    if (status) status.textContent = '正在获取当前位置…';
+    navigator.geolocation.getCurrentPosition(
+      () => { if (status) status.textContent = '已定位到当前位置'; toast('已获取当前位置'); },
+      () => { if (status) status.textContent = '定位失败，已展示附近常用地址'; toast('定位失败，可手动选择附近地址'); },
+      { timeout: 5000, maximumAge: 60000 }
+    );
+  }
+
   function requestView() {
     if (!draft) draft = createDraft();
     const today = todayISO();
@@ -449,25 +506,29 @@
       <div class="book-hero__scene home-scene" aria-hidden="true">
         <svg viewBox="0 0 390 150" preserveAspectRatio="xMidYMax slice">
           <defs>
-            <linearGradient id="homeWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7FBFF"/><stop offset="1" stop-color="#C9E3FF"/></linearGradient>
-            <linearGradient id="homeRoof" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#94C2FF"/><stop offset="1" stop-color="#5D9BF0"/></linearGradient>
             <radialGradient id="homeGlow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".85"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient>
+            <linearGradient id="homeWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E6F3FF"/></linearGradient>
+            <linearGradient id="homeRoof" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EEF8FF"/><stop offset="1" stop-color="#8DBFEF"/></linearGradient>
+            <filter id="houseShadow" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="9" stdDeviation="9" flood-color="#2D6DB8" flood-opacity=".18"/></filter>
+            <linearGradient id="homeFade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F5FAFF" stop-opacity="0"/><stop offset="1" stop-color="#F5FAFF"/></linearGradient>
           </defs>
           <circle cx="300" cy="72" r="68" fill="url(#homeGlow)"/>
+          <circle cx="282" cy="82" r="78" fill="#BFDDFF" opacity=".22"/>
           <g fill="#FFFFFF" opacity=".55"><ellipse cx="68" cy="32" rx="30" ry="9"/><ellipse cx="96" cy="26" rx="20" ry="6"/><ellipse cx="330" cy="24" rx="24" ry="6"/></g>
           <g fill="#CFE5FF" opacity=".8"><rect x="18" y="92" width="38" height="54" rx="5"/><rect x="58" y="104" width="29" height="42" rx="4"/><rect x="91" y="111" width="22" height="35" rx="4"/></g>
-          <g transform="translate(238 26)">
-            <path d="M-12 52L55 4l67 48" fill="none" stroke="url(#homeRoof)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
-            <rect x="0" y="48" width="110" height="76" rx="10" fill="url(#homeWall)"/>
-            <rect x="0" y="48" width="110" height="76" rx="10" fill="none" stroke="#C4E0FF" stroke-width="1.5"/>
-            <rect x="17" y="64" width="27" height="23" rx="5" fill="#FFFFFF" opacity=".92"/>
-            <rect x="66" y="64" width="27" height="23" rx="5" fill="#FFFFFF" opacity=".92"/>
-            <rect x="45" y="94" width="21" height="30" rx="5" fill="#2E6BFF"/>
-            <rect x="38" y="52" width="34" height="30" rx="8" fill="#FFFFFF" opacity=".96"/>
-            <path d="M55 59c-3-2-6-1-6 2 0 3 4 5 6 7 2-2 6-4 6-7 0-3-3-4-6-2z" fill="#2E6BFF"/>
-            <path d="M-4 60v8M-8 64h8" stroke="#A7CBF6" stroke-width="2" stroke-linecap="round"/>
-            <path d="M118 74v7M114.5 77.5h7" stroke="#A7CBF6" stroke-width="1.6" stroke-linecap="round"/>
+          <g transform="translate(220 14)" filter="url(#houseShadow)">
+            <ellipse cx="60" cy="130" rx="62" ry="9" fill="#8FBDEB" opacity=".16"/>
+            <path d="M-13 58 Q-13 50 -6 45 L52 4 Q58 0 64 4 L122 45 Q129 50 129 58 Q129 63 121 63 H-5 Q-13 63 -13 58Z" fill="url(#homeRoof)"/>
+            <rect x="3" y="58" width="114" height="92" rx="15" fill="url(#homeWall)"/>
+            <rect x="22" y="77" width="29" height="23" rx="6" fill="#E7F4FF" opacity=".95"/>
+            <rect x="72" y="77" width="29" height="23" rx="6" fill="#E7F4FF" opacity=".95"/>
+            <rect x="46" y="108" width="26" height="42" rx="9" fill="#2E6BFF" opacity=".9"/>
+            <rect x="46" y="70" width="26" height="26" rx="8" fill="#FFFFFF" opacity=".96"/>
+            <path d="M59 77v12M53 83h12" stroke="#2E6BFF" stroke-width="3" stroke-linecap="round"/>
+            <path d="M16 58h88" stroke="#FFFFFF" stroke-width="2" opacity=".55" stroke-linecap="round"/>
+            <path d="M-6 62h132" stroke="#FFFFFF" stroke-width="1.6" opacity=".32" stroke-linecap="round"/>
           </g>
+          <rect x="0" y="112" width="390" height="38" fill="url(#homeFade)"/>
           <path d="M0 137 Q92 124 194 136 T390 132 V150 H0Z" fill="#F2F9FF" opacity=".65"/>
           <g fill="#8FC2FF" opacity=".45"><path d="M138 44c-5-4-9-6-9-10 0-2 2-4 4-4 2 0 3 1 5 3 2-2 3-3 5-3 2 0 4 2 4 4 0 4-4 6-9 10z"/></g>
           <g stroke="#9CC8F5" stroke-width="1.5" opacity=".5"><path d="M123 55v9M118.5 59.5h9"/><path d="M218 43v8M214 47h8"/><path d="M198 102v7M194.5 105.5h7"/></g>
@@ -494,7 +555,6 @@
           <div class="field"><label class="field__label" for="birthday">出生日期<em>*</em> <span class="field__tag" id="age-hint">${draft.patient.age ? draft.patient.age + ' 岁' : ''}</span></label><input class="field__box" id="birthday" type="date" value="${esc(draft.patient.birthday)}"><span class="field__err">请填写出生日期</span></div>
           <div class="field field--full"><label class="field__label" for="patientIdType">证件类型<em>*</em></label><select class="field__box" id="patientIdType">${D.idTypes.map(([v, n]) => `<option value="${v}" ${String(draft.patient.idType) === v ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select><span class="field__err"></span></div>
           <div class="field field--full"><label class="field__label" for="patientIdNo">证件号<em>*</em></label><input class="field__box" id="patientIdNo" value="${esc(draft.patient.idNo)}" placeholder="请输入证件号码"><span class="field__err">请填写证件号码</span></div>
-          <div class="field field--full"><label class="field__label" for="health">健康状况 / 自理能力<em>*</em></label><select class="field__box" id="health">${['自理', '半自理', '失能'].map((h) => `<option ${draft.health === h ? 'selected' : ''}>${h}</option>`).join('')}</select><span class="field__err"></span></div>
         </div>
       </section>
 
@@ -503,7 +563,7 @@
         <div class="form-grid">
           <div class="field field--full"><label class="field__label" for="city">服务省市<em>*</em></label><input type="hidden" id="city" value="${esc(city)}"><input type="hidden" id="province" value="${esc(province)}"><button type="button" class="field__box field__box--picker" id="city-picker-btn" data-act="choose-city"><span id="city-label">${esc(province && province !== city ? province + ' ' + city : city)}</span>${icon('chevD')}</button><span class="field__err">请选择服务省市</span></div>
           <div class="field field--full"><label class="field__label" for="district">服务区域<em>*</em></label><select class="field__box" id="district">${districts.map((d) => `<option ${district === d ? 'selected' : ''}>${esc(d)}</option>`).join('')}</select><span class="field__err">请选择服务区域</span></div>
-          <div class="field field--full"><label class="field__label" for="address">详细地址<em>*</em></label><input class="field__box" id="address" value="${esc(draft.address)}" placeholder="街道、小区、楼栋、门牌号"><span class="field__err">请填写详细地址</span></div>
+          <div class="field field--full"><div class="field__label-row"><label class="field__label" for="address">详细地址<em>*</em></label><button type="button" class="field__loc" data-act="open-map">${icon('pin')}定位</button></div><input class="field__box" id="address" value="${esc(draft.address)}" placeholder="街道、小区、楼栋、门牌号"><span class="field__err">请填写详细地址</span></div>
         </div>
       </section>
 
@@ -542,7 +602,7 @@
       <div class="agree-block">
         <div class="agree ${draft.agree ? 'is-on' : ''}" id="agree-row" data-act="toggle-agree">
           <span class="agree__box">${icon('check')}</span>
-          <span>我已阅读并同意<em>《居家照护服务协议》</em>与<em>《隐私政策》</em>，确认服务地址、健康状况与护理员要求真实有效</span>
+          <span>我已阅读并同意<em>《居家照护服务协议》</em>与<em>《隐私政策》</em>，确认服务地址、服务对象信息与护理员要求真实有效</span>
         </div>
         <div class="form-foot-note">${icon('shield')} 服务由持证护理员提供，上门签到、护理记录全程可追溯</div>
       </div>
@@ -740,7 +800,7 @@
         <section class="sv-card">
           <div class="sv-head"><span class="sv-num">05</span><div><h2>注意事项</h2><p>请家属提前了解</p></div></div>
           <ul class="sv-notes">
-            <li><span>1</span>请如实填写服务对象健康状况、服务地址和护理员要求。</li>
+            <li><span>1</span>请如实填写服务对象信息、服务地址和护理员要求。</li>
             <li><span>2</span>本服务适用于一般居家照护；传染性疾病、阿尔茨海默病、精神类疾病等不适用，如隐瞒病情服务商有权拒绝服务。</li>
             <li><span>3</span>每次服务权益启动后，未使用完的服务时长将自动失效。</li>
             <li><span>4</span>护理员到岗、服务过程、离岗需上传含时间地点水印照片，照片缺失不作为服务完成依据。</li>
@@ -792,7 +852,6 @@
           <div class="detail-kv"><span>姓名 / 性别</span><b>${esc(o.patient.name)} · ${esc(o.patient.gender)} · ${o.patient.age}岁</b></div>
           <div class="detail-kv"><span>证件</span><b>${esc(idTypeName(o.patient.idType))} ${maskId(o.patient.idNo)}</b></div>
           <div class="detail-kv"><span>出生日期</span><b>${fmtFull(o.patient.birthday)}</b></div>
-          <div class="detail-kv"><span>健康状况</span><b>${esc(o.healthStatus || o.patient.selfCare || '未填写')}</b></div>
         </section>
         <section class="dcard">${dhead('home', 'is-teal', '服务地址')}
           <div class="detail-kv"><span>服务省市</span><b>${esc(o.province === o.city ? o.city : `${o.province || ''} ${o.city || ''}`)}</b></div>
@@ -1053,6 +1112,7 @@
     else if (p === 'account') html = accountView();
     else if (p === 'cards') { location.hash = '#/my'; return; }
     else if (p === 'vouchers') { location.hash = '#/my'; return; }
+    else if (p === 'map') html = mapView();
     else if (p === 'service') html = serviceView();
     else if (p === 'records') html = recordsView();
     else if (p === 'customer') { location.hash = '#/my'; return; }
@@ -1103,7 +1163,6 @@
     const patientGender = draft.patient.gender;
     const patientIdType = $('#patientIdType').value;
     const patientIdNo = $('#patientIdNo').value.trim();
-    const health = $('#health').value;
     const contactName = $('#contactName').value.trim();
     const contactPhone = $('#contactPhone').value.trim();
     const note = $('#note').value.trim();
@@ -1155,9 +1214,8 @@
       voucherId: card.id,
       patient: {
         name: patientName, gender: patientGender, idType: patientIdType, idNo: patientIdNo,
-        birthday: patientBirthday, age: patientAge, mobile: '', province, city, county: district, address, selfCare: health
+        birthday: patientBirthday, age: patientAge, mobile: '', province, city, county: district, address, selfCare: ''
       },
-      healthStatus: health,
       staffGender,
       staffNote: note,
       materials: [...(draft.materials || [])],
@@ -1421,6 +1479,20 @@
       draft.startDate = date;
       if (input) input.value = date + 'T' + time;
       $$('.quick-date').forEach((b) => b.classList.toggle('is-on', b.dataset.date === date));
+      return;
+    }
+    if (act === 'open-map') { openMapPage(); return; }
+    if (act === 'locate-me') { requestLocation(); return; }
+    if (act === 'pick-place') {
+      const place = (D.nearbyPlaces || []).find((p) => p.address === el.dataset.value);
+      if (!place) return;
+      draft.address = place.address;
+      draft.city = place.city;
+      draft.district = place.district;
+      const area = D.serviceAreas.find((a) => a.city === place.city);
+      if (area) draft.province = area.province;
+      go('/book');
+      toast('地址已填入');
       return;
     }
     if (act === 'service-days') {

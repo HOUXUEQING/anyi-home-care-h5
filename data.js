@@ -26,7 +26,18 @@ window.HOME_DATA = {
     { province: '湖北省', city: '武汉市', districts: ['武昌区', '江汉区', '洪山区', '汉阳区'] },
     { province: '福建省', city: '厦门市', districts: ['思明区', '湖里区', '集美区'] }
   ],
-  serviceDays: [3, 4, 5, 6, 7],
+  nearbyPlaces: [
+    { city: '北京市', district: '朝阳区', name: '望京 SOHO', address: '望京街道阜通东大街 6 号院 3 号楼', distance: '320m' },
+    { city: '北京市', district: '朝阳区', name: '望京西园', address: '望京西园三区 302 号楼 2 单元', distance: '680m' },
+    { city: '北京市', district: '海淀区', name: '中关村南路', address: '中关村南路 12 号院 5 号楼', distance: '1.2km' },
+    { city: '上海市', district: '浦东新区', name: '张江人才公寓', address: '张江镇祖冲之路 888 弄 6 号楼 1202', distance: '260m' },
+    { city: '上海市', district: '浦东新区', name: '张江汤臣豪园', address: '晨晖路 828 弄 12 号楼', distance: '740m' },
+    { city: '上海市', district: '徐汇区', name: '徐家汇花园', address: '宛平南路 88 弄 3 号楼', distance: '1.1km' },
+    { city: '广东省', district: '深圳市', name: '深圳湾一号', address: '南山区科苑南路 2988 号', distance: '420m' },
+    { city: '广东省', district: '深圳市', name: '华润城润府', address: '南山区深南大道 9666 号', distance: '900m' },
+    { city: '天津市', district: '和平区', name: '金茂府', address: '和平区南京路 189 号', distance: '520m' },
+    { city: '山东省', district: '淄博市', name: '张店世纪花园', address: '张店区世纪路 156 号', distance: '610m' }
+  ],  serviceDays: [3, 4, 5, 6, 7],
   materialTypes: ['出院小结', '出院通知', '病历资料', '检查报告', '身份证明', '其他就医材料'],
   cards: [
     {
