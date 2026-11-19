@@ -413,40 +413,6 @@
       <div class="sheet__body city-picker"><div class="city-picker__col" id="city-province-list">${provinces.map((x) => `<button type="button" class="city-option city-prov ${x === p ? 'is-on' : ''}" data-act="pick-province" data-value="${esc(x)}">${esc(x)}</button>`).join('')}</div><div class="city-picker__col" id="city-city-list">${map[p].map((x) => `<button type="button" class="city-option city-city ${x === c ? 'is-on' : ''}" data-act="pick-city" data-value="${esc(x)}">${esc(x)}</button>`).join('')}</div></div>
       <div class="sheet__foot"><button class="btn btn--ghost" data-act="close-sheet">取消</button><button class="btn btn--primary" data-act="confirm-city">确定</button></div>`);
   }
-  function paintHospitalSuggest(q = '') {
-    const box = $('#hospital-suggest');
-    if (!box) return;
-    const query = q.trim();
-    if (!query) { box.hidden = true; box.innerHTML = ''; return; }
-    const list = D.hospitals.filter((h) => (D.hospitalMeta[h] || {}).city === draft.city && h.includes(query));
-    box.hidden = false;
-    box.innerHTML = list.length ? list.map((h) => `<button type="button" class="hospital-option ${draft.hospital === h ? 'is-on' : ''}" data-act="pick-hospital-inline" data-value="${esc(h)}"><b>${esc(h)}</b><span>${esc((D.hospitalMeta[h] || {}).province || '')} ${esc((D.hospitalMeta[h] || {}).city || '')}</span></button>`).join('') : `<div class="hospital-empty">未找到可服务医院</div>`;
-  }
-  function selectHospital(name) {
-    if (!D.hospitals.includes(name)) return;
-    draft.hospital = name;
-    const meta = D.hospitalMeta[name] || {};
-    if (meta.province) draft.province = meta.province;
-    if ($('#hospital')) $('#hospital').value = name;
-    if ($('#province')) $('#province').value = draft.province || '';
-    if ($('#hospital-input')) $('#hospital-input').value = name;
-    const box = $('#hospital-suggest');
-    if (box) { box.hidden = true; box.innerHTML = ''; }
-  }
-
-  function openHospitalSheet() {
-    if (!draft.city) { toast('请先选择城市'); return; }
-    openSheet(`<div class="sheet__handle"></div><div class="sheet__head"><div><h2>选择就诊医院</h2><p>仅可选择当前城市可服务医院</p></div><button class="sheet__close" data-act="close-sheet">${icon('close')}</button></div>
-      <div class="sheet__body"><div class="input-wrap" style="margin-bottom:10px">${icon('search')}<input id="hospital-search" placeholder="搜索医院名称" autocomplete="off"></div><div class="hospital-results" id="hospital-results"></div></div>`);
-    paintHospitalResults('');
-  }
-  function paintHospitalResults(q = '') {
-    const box = $('#hospital-results');
-    if (!box) return;
-    const list = D.hospitals.filter((h) => (D.hospitalMeta[h] || {}).city === draft.city && h.includes(q.trim()));
-    box.innerHTML = list.length ? list.map((h) => `<button type="button" class="hospital-option ${draft.hospital === h ? 'is-on' : ''}" data-act="pick-hospital" data-value="${esc(h)}"><b>${esc(h)}</b><span>${esc((D.hospitalMeta[h] || {}).province || '')} ${esc((D.hospitalMeta[h] || {}).city || '')}</span></button>`).join('') : `<div class="empty" style="padding:26px 10px"><p>未找到可服务医院</p><span class="tiny muted">仅支持当前城市清单内医院</span></div>`;
-  }
-
   function requestView() {
     if (!draft) draft = createDraft();
     const today = todayISO();
@@ -1531,19 +1497,6 @@
       });
       return;
     }
-    if (e.target.id === 'city') {
-      const city = e.target.value;
-      const hospitals = D.hospitals.filter((h) => (D.hospitalMeta[h] || {}).city === city);
-      const sel = $('#hospital');
-      if (sel) sel.innerHTML = hospitals.map((h) => `<option>${esc(h)}</option>`).join('');
-      draft.city = city;
-      draft.hospital = hospitals[0] || '';
-      return;
-    }
-    if (e.target.id === 'hospital') {
-      draft.hospital = e.target.value;
-      return;
-    }
     if (e.target.id === 'serviceTime' && e.target.value) {
       const [d, t] = e.target.value.split('T');
       draft.startDate = d;
@@ -1558,16 +1511,6 @@
   });
 
   document.addEventListener('input', (e) => {
-    if (e.target.id === 'hospital-input') {
-      const q = e.target.value.trim();
-      const exact = D.hospitals.find((h) => (D.hospitalMeta[h] || {}).city === draft.city && h === q);
-      if (exact) { selectHospital(exact); return; }
-      draft.hospital = '';
-      if ($('#hospital')) $('#hospital').value = '';
-      paintHospitalSuggest(q);
-      return;
-    }
-    if (e.target.id === 'hospital-search') { paintHospitalResults(e.target.value); return; }
     if (e.target.id === 'patientIdNo') {
       const id = e.target.value.trim();
       const type = $('#patientIdType') ? $('#patientIdType').value : '1';
@@ -1666,16 +1609,6 @@
       closeSheet();
       render();
       toast('姓名已更新');
-    }
-  });
-
-  document.addEventListener('focusin', (e) => {
-    if (e.target.id === 'hospital-input') paintHospitalSuggest(e.target.value);
-  });
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest?.('.hospital-input-wrap') && !e.target.closest?.('#hospital-suggest')) {
-      const box = $('#hospital-suggest');
-      if (box) box.hidden = true;
     }
   });
 
