@@ -1020,7 +1020,7 @@ textarea.field__box { height: auto; min-height: 74px; padding: 10px 11px; line-h
 .field__label-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .address-region-row { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) 48px; gap: 6px; align-items: stretch; }
 .address-region-row .field__box { min-width: 0; height: 44px; }
-.address-region-row .field__loc { height: 44px; padding: 0 4px; flex-direction: column; gap: 1px; font-size: 8.5px; border-radius: 11px; }
+.address-region-row .field__loc { height: 44px; padding: 0 4px; flex-direction: row; gap: 2px; font-size: 9px; border-radius: 11px; justify-content: center; text-align: center; }
 .address-region-row .field__loc .ic { width: 13px; height: 13px; }
 .field__loc { display: inline-flex; align-items: center; gap: 3px; padding: 3px 7px; border-radius: 7px; background: #EAF3FF; color: var(--brand); font-size: 9px; font-weight: 600; }
 .field__loc .ic { width: 11px; height: 11px; }
