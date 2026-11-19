@@ -828,7 +828,7 @@
           <div class="detail-kv"><span>健康状况</span><b>${esc(o.healthStatus || o.patient.selfCare || '未填写')}</b></div>
         </section>
         <section class="dcard">${dhead('home', 'is-teal', '服务地址')}
-          <div class="detail-kv"><span>服务省市</span><b>${esc(o.province || '')} ${esc(o.city || '')}</b></div>
+          <div class="detail-kv"><span>服务省市</span><b>${esc(o.province === o.city ? o.city : `${o.province || ''} ${o.city || ''}`)}</b></div>
           <div class="detail-kv"><span>服务区域</span><b>${esc(o.district || '')}</b></div>
           <div class="detail-kv"><span>详细地址</span><b style="max-width:250px">${esc(o.address || '')}</b></div>
         </section>
