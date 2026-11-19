@@ -745,6 +745,7 @@
             <li><span>3</span>每次服务权益启动后，未使用完的服务时长将自动失效。</li>
             <li><span>4</span>护理员到岗、服务过程、离岗需上传含时间地点水印照片，照片缺失不作为服务完成依据。</li>
             <li><span>5</span>护理员不提供医疗诊疗；如遇病情变化，请第一时间联系医护人员。</li>
+            <li><span>6</span>因医院规定、自然灾害、恶劣天气等不可抗力导致无法上门，服务商当次免责，可保留本次权益。</li>
           </ul>
         </section>
         <div class="sv-cta"><button class="btn btn--primary btn--block" data-nav="#/book">去预约居家照护</button><span>照护顾问将协助确认服务安排</span></div>
