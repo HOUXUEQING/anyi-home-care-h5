@@ -533,7 +533,7 @@
       </section>
 
       <section class="form-card">
-        <div class="form-card__head"><span class="form-card__num is-blue">${icon('user')}</span><span class="form-card__title">填写服务对象信息</span><span class="form-card__aside">用于服务预约与实名</span></div>
+        <div class="form-card__head"><span class="form-card__num is-blue">${icon('user')}</span><span class="form-card__title">护理人信息</span><span class="form-card__aside">用于服务预约与实名</span></div>
         <div class="form-grid">
           <div class="field field--full"><label class="field__label" for="patientName">姓名<em>*</em></label><input class="field__box" id="patientName" value="${esc(draft.patient.name)}" placeholder="请输入服务对象姓名"><span class="field__err">请填写服务对象姓名</span></div>
           <div class="field field--full"><label class="field__label">性别<em>*</em></label><div class="seg"><button type="button" class="seg__btn ${draft.patient.gender === '女' ? 'is-on' : ''}" data-act="gender" data-value="女">女</button><button type="button" class="seg__btn ${draft.patient.gender === '男' ? 'is-on' : ''}" data-act="gender" data-value="男">男</button></div></div>
@@ -544,7 +544,7 @@
       </section>
 
       <section class="form-card">
-        <div class="form-card__head"><span class="form-card__num is-teal">${icon('home')}</span><span class="form-card__title">服务地址</span><span class="form-card__aside">用于匹配属地护理员</span></div>
+        <div class="form-card__head"><span class="form-card__num is-teal">${icon('home')}</span><span class="form-card__title">上门地址</span><span class="form-card__aside">用于匹配属地护理员</span></div>
         <div class="form-grid">
           <div class="field field--full"><label class="field__label">服务省市 / 区域<em>*</em></label><div class="address-region-row"><input type="hidden" id="city" value="${esc(city)}"><input type="hidden" id="province" value="${esc(province)}"><button type="button" class="field__box field__box--picker" id="city-picker-btn" data-act="choose-city"><span id="city-label">${esc(province && province !== city ? province + ' ' + city : city)}</span>${icon('chevD')}</button><select class="field__box" id="district">${districts.map((d) => `<option ${district === d ? 'selected' : ''}>${esc(d)}</option>`).join('')}</select><button type="button" class="field__loc" data-act="open-map">${icon('pin')}定位</button></div><span class="field__err">请选择服务省市和区域</span></div>
           <div class="field field--full"><label class="field__label" for="address">详细地址<em>*</em></label><input class="field__box" id="address" value="${esc(draft.address)}" placeholder="街道、小区、楼栋、门牌号"><span class="field__err">请填写详细地址</span></div>
@@ -560,9 +560,9 @@
 
 
       <section class="form-card">
-        <div class="form-card__head"><span class="form-card__num is-violet">${icon('clock')}</span><span class="form-card__title">期望服务时间</span><span class="form-card__aside">照护顾问将评估确认</span></div>
+        <div class="form-card__head"><span class="form-card__num is-violet">${icon('clock')}</span><span class="form-card__title">期望服务开始时间</span><span class="form-card__aside">照护顾问将评估确认</span></div>
         <div class="quick-dates">${[[0, '今天'], [1, '明天'], [2, '后天']].map(([n, label]) => { const d = addDays(today, n); return `<button type="button" class="quick-date ${draft.startDate === d ? 'is-on' : ''}" data-act="quick-date" data-date="${d}">${label}<span>${Number(d.slice(5, 7))}/${Number(d.slice(8))}</span></button>`; }).join('')}</div>
-        <div class="field" style="margin-top:10px"><label class="field__label" for="serviceTime">期望服务时间<em>*</em></label><input class="field__box" id="serviceTime" type="datetime-local" min="${today}T00:00" value="${esc(draft.startDate)}T${esc(draft.startTime)}"><span class="field__err">请选择期望服务时间</span></div>
+        <div class="field" style="margin-top:10px"><label class="field__label" for="serviceTime">期望服务开始时间<em>*</em></label><input class="field__box" id="serviceTime" type="datetime-local" min="${today}T00:00" value="${esc(draft.startDate)}T${esc(draft.startTime)}"><span class="field__err">请选择期望服务开始时间</span></div>
         <div class="field" style="margin-top:12px"><label class="field__label">服务时长<em>*</em></label><div class="seg seg--five">${D.serviceDays.map((d) => `<button type="button" class="seg__btn ${draft.serviceDays === d ? 'is-on' : ''}" data-act="service-days" data-value="${d}">${d} 天</button>`).join('')}</div><p class="form-note" style="margin:6px 0 0">按 24 小时一个服务日，可选 3–7 天</p></div>
       </section>
 
@@ -576,7 +576,7 @@
 
 
       <section class="form-card">
-        <div class="form-card__head"><span class="form-card__num is-blue">${icon('users')}</span><span class="form-card__title">填写联系人信息</span><span class="form-card__aside">用于顾问确认</span></div>
+        <div class="form-card__head"><span class="form-card__num is-blue">${icon('users')}</span><span class="form-card__title">联系人信息</span><span class="form-card__aside">用于顾问确认</span></div>
         <div class="form-grid">
           <div class="field"><label class="field__label" for="contactName">姓名<em>*</em></label><input class="field__box" id="contactName" value="${esc(draft.contact.name)}" placeholder="姓名"><span class="field__err">请填写联系人姓名</span></div>
           <div class="field"><label class="field__label" for="contactPhone">手机号<em>*</em></label><input class="field__box" id="contactPhone" type="tel" inputmode="numeric" maxlength="11" value="${esc(draft.contact.mobile || draft.contact.phone)}" placeholder="11 位手机号"><span class="field__err">请填写正确手机号</span></div>
@@ -586,7 +586,7 @@
       <div class="agree-block">
         <div class="agree ${draft.agree ? 'is-on' : ''}" id="agree-row" data-act="toggle-agree">
           <span class="agree__box">${icon('check')}</span>
-          <span>我已阅读并同意<em>《居家照护服务协议》</em>与<em>《隐私政策》</em>，确认服务地址、服务对象信息与护理员要求真实有效</span>
+          <span>我已阅读并同意<em>《居家照护服务协议》</em>与<em>《隐私政策》</em>，确认服务地址、护理人信息与护理员要求真实有效</span>
         </div>
         <div class="form-foot-note">${icon('shield')} 服务由持证护理员提供，上门签到、护理记录全程可追溯</div>
       </div>
@@ -611,8 +611,8 @@
       </div>
       <div class="appt-lines">
         <div class="appt-line">${icon('clock')}<span class="appt-line__label">预约时间</span><b>${fmtFull(o.startDate)} ${esc(o.startTime)}</b></div>
-        <div class="appt-line">${icon('user')}<span class="appt-line__label">服务对象</span><b>${esc(o.patient.name)} · ${esc(o.patient.gender)} · ${o.patient.age}岁</b></div>
-        <div class="appt-line">${icon('pin')}<span class="appt-line__label">服务地址</span><b>${esc(o.city)}${esc(o.district)} · ${esc(o.address)}</b></div>
+        <div class="appt-line">${icon('user')}<span class="appt-line__label">护理人</span><b>${esc(o.patient.name)} · ${esc(o.patient.gender)} · ${o.patient.age}岁</b></div>
+        <div class="appt-line">${icon('pin')}<span class="appt-line__label">上门地址</span><b>${esc(o.city)}${esc(o.district)} · ${esc(o.address)}</b></div>
       </div>
       <div class="appt-card__actions">
         <button class="appt-action" data-nav="#/order/${o.id}">查看详情</button>
@@ -784,7 +784,7 @@
         <section class="sv-card">
           <div class="sv-head"><span class="sv-num">05</span><div><h2>注意事项</h2><p>请家属提前了解</p></div></div>
           <ul class="sv-notes">
-            <li><span>1</span>请如实填写服务对象信息、服务地址和护理员要求。</li>
+            <li><span>1</span>请如实护理人信息、服务地址和护理员要求。</li>
             <li><span>2</span>本服务适用于一般居家照护；传染性疾病、阿尔茨海默病、精神类疾病等不适用，如隐瞒病情服务商有权拒绝服务。</li>
             <li><span>3</span>每次服务权益启动后，未使用完的服务时长将自动失效。</li>
             <li><span>4</span>护理员到岗、服务过程、离岗需上传含时间地点水印照片，照片缺失不作为服务完成依据。</li>
@@ -832,19 +832,19 @@
           ${foldable ? `<button class="timeline-toggle" type="button" data-act="toggle-timeline">展开全部</button>` : ''}
         </section>
         ${caregiver}
-        <section class="dcard">${dhead('user', 'is-blue', '服务对象信息')}
+        <section class="dcard">${dhead('user', 'is-blue', '护理人信息')}
           <div class="detail-kv"><span>姓名 / 性别</span><b>${esc(o.patient.name)} · ${esc(o.patient.gender)} · ${o.patient.age}岁</b></div>
           <div class="detail-kv"><span>证件</span><b>${esc(idTypeName(o.patient.idType))} ${maskId(o.patient.idNo)}</b></div>
           <div class="detail-kv"><span>出生日期</span><b>${fmtFull(o.patient.birthday)}</b></div>
         </section>
-        <section class="dcard">${dhead('home', 'is-teal', '服务地址')}
+        <section class="dcard">${dhead('home', 'is-teal', '上门地址')}
           <div class="detail-kv"><span>服务省市</span><b>${esc(o.province === o.city ? o.city : `${o.province || ''} ${o.city || ''}`)}</b></div>
           <div class="detail-kv"><span>服务区域</span><b>${esc(o.district || '')}</b></div>
           <div class="detail-kv"><span>详细地址</span><b style="max-width:250px">${esc(o.address || '')}</b></div>
         </section>
-        <section class="dcard">${dhead('clock', 'is-violet', '期望服务时间')}
+        <section class="dcard">${dhead('clock', 'is-violet', '期望服务开始时间')}
           <div class="detail-kv"><span>服务项目</span><b>居家照护</b></div>
-          <div class="detail-kv"><span>期望时间</span><b>${fmtDate(o.startDate)} ${esc(o.startTime)}</b></div>
+          <div class="detail-kv"><span>期望开始时间</span><b>${fmtDate(o.startDate)} ${esc(o.startTime)}</b></div>
           <div class="detail-kv"><span>服务时长</span><b>${o.serviceDays || 5} 天</b></div>
         </section>
         <section class="dcard">${dhead('care', 'is-rose', '护理员要求')}
@@ -901,7 +901,7 @@
         <div class="privacy__date">更新日期：2026 年 11 月 12 日 · 生效日期：2026 年 11 月 12 日</div>
         <p>安颐居家照护（以下简称“我们”）深知个人信息对您和家人的重要性。本政策说明我们在提供居家照护服务过程中如何收集、使用、存储和保护信息。</p>
         <h2>一、我们收集的信息</h2>
-        <ul><li>登录信息：手机号、姓名、验证码校验记录。</li><li>服务信息：服务省市、服务区域、详细地址、服务时间与服务时长。</li><li>服务对象信息：姓名、性别、年龄、证件类型与证件号。</li><li>联系人信息：姓名、手机号。</li><li>订单与服务记录：订单状态、护理员安排、上门服务与服务完成记录。</li></ul>
+        <ul><li>登录信息：手机号、姓名、验证码校验记录。</li><li>服务信息：服务省市、服务区域、详细地址、服务时间与服务时长。</li><li>护理人信息：姓名、性别、年龄、证件类型与证件号。</li><li>联系人信息：姓名、手机号。</li><li>订单与服务记录：订单状态、护理员安排、上门服务与服务完成记录。</li></ul>
         <h2>二、信息使用目的</h2>
         <p>用于创建和管理居家照护订单、匹配护理员、照护顾问电话确认、服务交接、订单进度展示、客服处理与安全保障。我们不会将健康相关信息用于与服务无关的营销。</p>
         <h2>三、信息共享</h2>
@@ -1036,7 +1036,7 @@
   }
   function privacySheet() {
     openSheet(`<div class="sheet__handle"></div><div class="sheet__head"><div><h2>隐私政策</h2><p>我们如何收集和使用您的信息</p></div><button class="sheet__close" data-act="close-sheet">${icon('close')}</button></div>
-      <div class="sheet__body"><p>我们仅收集完成居家照护服务所必需的信息，包括登录手机号、服务地址、服务对象信息与联系人信息，用于订单创建、护理员匹配、顾问确认和服务交接。</p><p style="margin-top:8px">信息不会用于无关营销，不会出售给第三方。演示版本的数据仅保存在当前浏览器本地。您可以通过「我的 → 隐私政策」查看完整条款。</p></div>
+      <div class="sheet__body"><p>我们仅收集完成居家照护服务所必需的信息，包括登录手机号、服务地址、护理人信息与联系人信息，用于订单创建、护理员匹配、顾问确认和服务交接。</p><p style="margin-top:8px">信息不会用于无关营销，不会出售给第三方。演示版本的数据仅保存在当前浏览器本地。您可以通过「我的 → 隐私政策」查看完整条款。</p></div>
       <div class="sheet__foot"><button class="btn btn--primary btn--block" data-act="close-sheet">我知道了</button></div>`);
   }
   function logoutSheet() {
@@ -1165,7 +1165,7 @@
     if (!district) fail($('#district'), '请选择服务区域');
     if (!address) fail($('#address'), '请填写详细地址');
     if (![3, 4, 5, 6, 7].includes(serviceDays)) fail($('#serviceTime'), '请选择服务时长');
-    if (!serviceTime || startDate < todayISO()) fail($('#serviceTime'), '请选择今天或之后的期望服务时间');
+    if (!serviceTime || startDate < todayISO()) fail($('#serviceTime'), '请选择今天或之后的期望服务开始时间');
     if (!patientName) fail($('#patientName'), '请填写服务对象姓名');
     if (!['女', '男'].includes(patientGender)) fail($('#patientName'), '请选择服务对象性别');
     if (!patientBirthday) fail($('#birthday'), '请填写出生日期');
