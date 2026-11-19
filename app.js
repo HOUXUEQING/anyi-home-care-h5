@@ -277,6 +277,8 @@
   let editingOrderId = null;
   let materialEdit = null;
   let cityPick = null;
+  let mapSelected = '';
+  let mapQuery = '';
 
   function draftFromOrder(o) {
     return {
@@ -430,32 +432,54 @@
     captureDraftForm();
     go('/map');
   }
-  function mapView() {
+  function getMapPlaces() {
     const city = draft?.city || '北京市';
     const district = draft?.district || '朝阳区';
     const all = D.nearbyPlaces || [];
-    let places = all.filter((p) => p.city === city && p.district === district);
-    if (!places.length) places = all.filter((p) => p.city === city);
-    if (!places.length) places = all.slice(0, 3);
-    setTimeout(() => { if (location.hash === '#/map') requestLocation(); }, 350);
-    return page(`${titlebar('选择服务地址', '#/book')}
-      <div class="map-page">
+    let list = all.filter((p) => p.city === city && p.district === district);
+    if (!list.length) list = all.filter((p) => p.city === city);
+    if (!list.length) list = all.slice(0, 3);
+    return list;
+  }
+  function mapRows(places) {
+    return places.map((p) => `<button type="button" class="map-place ${mapSelected === p.address ? 'is-on' : ''}" data-act="select-place" data-value="${esc(p.address)}"><span class="map-radio">${mapSelected === p.address ? icon('check') : ''}</span><div><b>${esc(p.name)}</b><span>${esc(p.address)}</span></div><span class="map-distance">${esc(p.distance || '500m')}</span></button>`).join('');
+  }
+  function renderMapResults() {
+    const box = $('#map-results');
+    if (!box) return;
+    const q = mapQuery.trim();
+    const places = getMapPlaces().filter((p) => !q || p.name.includes(q) || p.address.includes(q));
+    box.innerHTML = places.length ? mapRows(places) : `<div class="map-empty">${icon('search')}<p>未找到相关地址</p><span>换个关键词试试</span></div>`;
+    const count = $('#map-count');
+    if (count) count.textContent = `${places.length} 个结果`;
+  }
+  function mapView() {
+    const city = draft?.city || '北京市';
+    const district = draft?.district || '朝阳区';
+    const places = getMapPlaces();
+    mapQuery = '';
+    if (!places.some((p) => p.address === mapSelected)) mapSelected = '';
+    setTimeout(() => { if (location.hash === '#/map') requestLocation(false); }, 350);
+    return page(`${titlebar('地址选择', '#/book')}
+      <div class="map-page map-page--picker">
+        <div class="map-toolbar"><button type="button" class="map-city" data-act="map-city">${esc(city)}${icon('chevD')}</button><div class="map-search">${icon('search')}<input id="map-search" placeholder="请输入地址" value="" autocomplete="off"></div></div>
         <div class="map-canvas">
           <span class="map-road map-road--h"></span><span class="map-road map-road--v"></span>
           <span class="map-block map-block--a"></span><span class="map-block map-block--b"></span><span class="map-block map-block--c"></span>
-          <div class="map-current"><span class="map-current__dot"></span><b>${esc(city)} ${esc(district)}</b><small id="loc-status">点击定位获取当前位置</small></div>
+          ${places.slice(0, 3).map((p, i) => `<span class="map-poi" style="left:${18 + i * 24}%;top:${28 + (i % 2) * 30}%">${esc(p.name)}</span>`).join('')}
+          <div class="map-current"><span class="map-current__dot"></span><b>${esc(city)} ${esc(district)}</b><small id="loc-status">正在获取当前位置…</small></div>
           <div class="map-pin">${icon('home')}<span>当前位置</span></div>
           <button type="button" class="map-locate" data-act="locate-me">${icon('pin')}重新定位</button>
         </div>
-        <div class="map-panel">
-          <div class="map-panel__head"><div><b>附近地址</b><span>选择后自动填入预约页面</span></div><span class="map-panel__hint">${places.length} 个结果</span></div>
-          <div class="map-list">${places.map((p) => `<button type="button" class="map-place" data-act="pick-place" data-value="${esc(p.address)}"><span class="map-place__icon">${icon('pin')}</span><div><b>${esc(p.name)}</b><span>${esc(p.address)}</span><small>距当前位置约 ${esc(p.distance || '500m')}</small></div>${icon('chevR')}</button>`).join('')}</div>
+        <div class="map-sheet">
+          <div class="map-sheet__head"><div><b>附近地址</b><span>请选择服务对象所在地址</span></div><span id="map-count">${places.length} 个结果</span></div>
+          <div class="map-list" id="map-results">${mapRows(places)}</div>
         </div>
-        <p class="map-tip">${icon('info')} 演示版地图为模拟定位；正式版接入地图 SDK 后可按真实位置推荐附近地址。</p>
+        <div class="map-confirm"><button type="button" class="btn btn--primary btn--block" data-act="confirm-place" ${mapSelected ? '' : 'disabled'}>确认</button></div>
       </div>`);
   }
 
-  function requestLocation() {
+  function requestLocation(notify = true) {
     const status = $('#loc-status');
     if (!navigator.geolocation) {
       if (status) status.textContent = '当前浏览器不支持定位';
@@ -464,8 +488,8 @@
     }
     if (status) status.textContent = '正在获取当前位置…';
     navigator.geolocation.getCurrentPosition(
-      () => { if (status) status.textContent = '已定位到当前位置'; toast('已获取当前位置'); },
-      () => { if (status) status.textContent = '定位失败，已展示附近常用地址'; toast('定位失败，可手动选择附近地址'); },
+      () => { if (status) status.textContent = '已定位到当前位置'; if (notify) toast('已获取当前位置'); },
+      () => { if (status) status.textContent = '定位失败，已展示附近常用地址'; if (notify) toast('定位失败，可手动选择附近地址'); },
       { timeout: 5000, maximumAge: 60000 }
     );
   }
@@ -507,8 +531,10 @@
         <svg viewBox="0 0 390 150" preserveAspectRatio="xMidYMax slice">
           <defs>
             <radialGradient id="homeGlow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".85"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient>
-            <linearGradient id="homeWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E6F3FF"/></linearGradient>
-            <linearGradient id="homeRoof" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EEF8FF"/><stop offset="1" stop-color="#8DBFEF"/></linearGradient>
+            <linearGradient id="homeWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".86"/><stop offset="1" stop-color="#DCEFFF" stop-opacity=".6"/></linearGradient>
+            <linearGradient id="homeSide" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#D8EEFF" stop-opacity=".62"/><stop offset="1" stop-color="#A6CFF4" stop-opacity=".4"/></linearGradient>
+            <linearGradient id="homeDoor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#80B8FF"/><stop offset="1" stop-color="#2E6BFF"/></linearGradient>
+            <linearGradient id="homeRoof" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F6FCFF" stop-opacity=".97"/><stop offset="1" stop-color="#8FC4F2" stop-opacity=".86"/></linearGradient>
             <filter id="houseShadow" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="9" stdDeviation="9" flood-color="#2D6DB8" flood-opacity=".18"/></filter>
             <linearGradient id="homeFade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F5FAFF" stop-opacity="0"/><stop offset="1" stop-color="#F5FAFF"/></linearGradient>
           </defs>
@@ -516,17 +542,22 @@
           <circle cx="282" cy="82" r="78" fill="#BFDDFF" opacity=".22"/>
           <g fill="#FFFFFF" opacity=".55"><ellipse cx="68" cy="32" rx="30" ry="9"/><ellipse cx="96" cy="26" rx="20" ry="6"/><ellipse cx="330" cy="24" rx="24" ry="6"/></g>
           <g fill="#CFE5FF" opacity=".8"><rect x="18" y="92" width="38" height="54" rx="5"/><rect x="58" y="104" width="29" height="42" rx="4"/><rect x="91" y="111" width="22" height="35" rx="4"/></g>
-          <g transform="translate(220 14)" filter="url(#houseShadow)">
-            <ellipse cx="60" cy="130" rx="62" ry="9" fill="#8FBDEB" opacity=".16"/>
-            <path d="M-13 58 Q-13 50 -6 45 L52 4 Q58 0 64 4 L122 45 Q129 50 129 58 Q129 63 121 63 H-5 Q-13 63 -13 58Z" fill="url(#homeRoof)"/>
-            <rect x="3" y="58" width="114" height="92" rx="15" fill="url(#homeWall)"/>
-            <rect x="22" y="77" width="29" height="23" rx="6" fill="#E7F4FF" opacity=".95"/>
-            <rect x="72" y="77" width="29" height="23" rx="6" fill="#E7F4FF" opacity=".95"/>
-            <rect x="46" y="108" width="26" height="42" rx="9" fill="#2E6BFF" opacity=".9"/>
-            <rect x="46" y="70" width="26" height="26" rx="8" fill="#FFFFFF" opacity=".96"/>
-            <path d="M59 77v12M53 83h12" stroke="#2E6BFF" stroke-width="3" stroke-linecap="round"/>
-            <path d="M16 58h88" stroke="#FFFFFF" stroke-width="2" opacity=".55" stroke-linecap="round"/>
-            <path d="M-6 62h132" stroke="#FFFFFF" stroke-width="1.6" opacity=".32" stroke-linecap="round"/>
+          <g transform="translate(222 12)" filter="url(#houseShadow)">
+            <ellipse cx="62" cy="132" rx="63" ry="8" fill="#8FBDEB" opacity=".16"/>
+            <path d="M113 64 L132 54 L132 114 L113 126 Z" fill="url(#homeSide)" stroke="rgba(255,255,255,.55)" stroke-width="1"/>
+            <path d="M5 58 H112 Q121 58 121 67 V126 H5 Z" fill="url(#homeWall)" stroke="rgba(255,255,255,.72)" stroke-width="1.1"/>
+            <path d="M57 10 L132 54 L120 64 L57 20 Z" fill="url(#homeRoof)" opacity=".6" stroke="rgba(255,255,255,.5)" stroke-width="1"/>
+            <path d="M-12 60 L54 10 Q58 6 62 10 L128 60 Q132 64 126 64 H-10 Q-15 64 -12 60 Z" fill="url(#homeRoof)" stroke="rgba(255,255,255,.75)" stroke-width="1.2"/>
+            <path d="M57 13 V62" stroke="#FFFFFF" opacity=".48" stroke-width="1.2"/>
+            <path d="M57 13 L126 60" stroke="#FFFFFF" opacity=".25" stroke-width="1"/>
+            <path d="M40 65 V126 M81 65 V126 M5 94 H121" stroke="#FFFFFF" opacity=".24" stroke-width=".8"/>
+            <rect x="20" y="77" width="29" height="23" rx="6" fill="#EAF7FF" opacity=".72" stroke="#FFFFFF" stroke-width=".9"/>
+            <rect x="72" y="77" width="29" height="23" rx="6" fill="#EAF7FF" opacity=".72" stroke="#FFFFFF" stroke-width=".9"/>
+            <rect x="47" y="70" width="26" height="26" rx="8" fill="#FFFFFF" opacity=".9"/>
+            <path d="M60 77v12M54 83h12" stroke="#2E6BFF" stroke-width="3" stroke-linecap="round"/>
+            <rect x="48" y="96" width="24" height="30" rx="9" fill="url(#homeDoor)" opacity=".85" stroke="#FFFFFF" stroke-width=".8"/>
+            <path d="M12 68 V120" stroke="#FFFFFF" opacity=".35" stroke-width="2" stroke-linecap="round"/>
+            <path d="M-4 61 L58 17" stroke="#FFFFFF" opacity=".35" stroke-width="1" stroke-linecap="round"/>
           </g>
           <rect x="0" y="112" width="390" height="38" fill="url(#homeFade)"/>
           <path d="M0 137 Q92 124 194 136 T390 132 V150 H0Z" fill="#F2F9FF" opacity=".65"/>
@@ -561,9 +592,8 @@
       <section class="form-card">
         <div class="form-card__head"><span class="form-card__num is-teal">${icon('home')}</span><span class="form-card__title">服务地址</span><span class="form-card__aside">用于匹配属地护理员</span></div>
         <div class="form-grid">
-          <div class="field field--full"><label class="field__label" for="city">服务省市<em>*</em></label><input type="hidden" id="city" value="${esc(city)}"><input type="hidden" id="province" value="${esc(province)}"><button type="button" class="field__box field__box--picker" id="city-picker-btn" data-act="choose-city"><span id="city-label">${esc(province && province !== city ? province + ' ' + city : city)}</span>${icon('chevD')}</button><span class="field__err">请选择服务省市</span></div>
-          <div class="field field--full"><label class="field__label" for="district">服务区域<em>*</em></label><select class="field__box" id="district">${districts.map((d) => `<option ${district === d ? 'selected' : ''}>${esc(d)}</option>`).join('')}</select><span class="field__err">请选择服务区域</span></div>
-          <div class="field field--full"><div class="field__label-row"><label class="field__label" for="address">详细地址<em>*</em></label><button type="button" class="field__loc" data-act="open-map">${icon('pin')}定位</button></div><input class="field__box" id="address" value="${esc(draft.address)}" placeholder="街道、小区、楼栋、门牌号"><span class="field__err">请填写详细地址</span></div>
+          <div class="field field--full"><label class="field__label">服务省市 / 区域<em>*</em></label><div class="address-region-row"><input type="hidden" id="city" value="${esc(city)}"><input type="hidden" id="province" value="${esc(province)}"><button type="button" class="field__box field__box--picker" id="city-picker-btn" data-act="choose-city"><span id="city-label">${esc(province && province !== city ? province + ' ' + city : city)}</span>${icon('chevD')}</button><select class="field__box" id="district">${districts.map((d) => `<option ${district === d ? 'selected' : ''}>${esc(d)}</option>`).join('')}</select><button type="button" class="field__loc" data-act="open-map">${icon('pin')}定位</button></div><span class="field__err">请选择服务省市和区域</span></div>
+          <div class="field field--full"><label class="field__label" for="address">详细地址<em>*</em></label><input class="field__box" id="address" value="${esc(draft.address)}" placeholder="街道、小区、楼栋、门牌号"><span class="field__err">请填写详细地址</span></div>
         </div>
       </section>
 
@@ -1415,6 +1445,7 @@
       const district = $('#district');
       if (district && area) district.innerHTML = area.districts.map((d) => `<option>${esc(d)}</option>`).join('');
       closeSheet();
+      if (location.hash === '#/map') render();
       return;
     }
     if (act === 'go-service') { go('/service'); return; }
@@ -1482,10 +1513,18 @@
       return;
     }
     if (act === 'open-map') { openMapPage(); return; }
-    if (act === 'locate-me') { requestLocation(); return; }
-    if (act === 'pick-place') {
-      const place = (D.nearbyPlaces || []).find((p) => p.address === el.dataset.value);
-      if (!place) return;
+    if (act === 'map-city') { openCitySheet(); return; }
+    if (act === 'locate-me') { requestLocation(true); return; }
+    if (act === 'select-place') {
+      mapSelected = el.dataset.value;
+      renderMapResults();
+      const confirm = document.querySelector('[data-act="confirm-place"]');
+      if (confirm) confirm.disabled = false;
+      return;
+    }
+    if (act === 'confirm-place') {
+      const place = (D.nearbyPlaces || []).find((p) => p.address === mapSelected);
+      if (!place) { toast('请选择地址'); return; }
       draft.address = place.address;
       draft.city = place.city;
       draft.district = place.district;
@@ -1584,6 +1623,7 @@
   });
 
   document.addEventListener('input', (e) => {
+    if (e.target.id === 'map-search') { mapQuery = e.target.value; renderMapResults(); return; }
     if (e.target.id === 'patientIdNo') {
       const id = e.target.value.trim();
       const type = $('#patientIdType') ? $('#patientIdType').value : '1';
