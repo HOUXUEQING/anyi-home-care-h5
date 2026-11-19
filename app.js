@@ -527,7 +527,7 @@
           <p>${isEditing ? '修改后预约将重新进入待确认状态。' : '填写信息并提交预约，照护顾问评估后将安排护理员<span style="white-space:nowrap">上门服务。</span>'}</p>
         </div>
       </div>
-      <div class="book-hero__photo" aria-hidden="true"><img src="assets/home-room.jpg" alt=""></div>
+      <div class="book-hero__photo" aria-hidden="true"><img src="assets/home-room.jpg?v=2" alt=""></div>
     </header>
     <form id="request-form" class="req-body" novalidate>
       ${activeOrders.length && !isEditing ? `<div class="banner banner--blue"><span class="banner__text">${icon('info')} 您有 ${activeOrders.length} 个进行中预约，另有 ${available.length} 次使用额度，可继续提交新的预约。</span><button class="banner__action" type="button" data-act="view-orders">查看订单${icon('chevR')}</button></div>` : ''}
