@@ -82,6 +82,36 @@ window.HOME_DATA = {
         { title: '服务评估完成，已安排护理员', desc: '陈晓梅 · 中级养老护理员', time: '11-15 18:05:00' },
         { title: '服务开始', desc: '护理员已上门签到，照护开始', time: '11-18 09:02:00' }
       ]
+    },
+    {
+      id: 'seed-h2', no: 'HMC20261118011', status: 'cancelled', auditStatus: 'rejected',
+      serviceType: '居家照护', serviceId: 'homecare',
+      province: '四川省', city: '成都市', district: '武侯区',
+      address: '人民南路四段 12 号 1 栋 702',
+      startDate: '2026-11-18', startTime: '09:00', serviceDays: 5,
+      card: {
+        cardNum: 'HMC202600099', cardType: 'homecare', cardTypeName: '居家照护服务权益',
+        productName: '居家照护服务权益', productCode: 'HC001',
+        startTime: '2026-01-01', endTime: '2027-12-31'
+      },
+      voucherId: null,
+      patient: {
+        name: '郑美华', gender: '女', idType: '1', idNo: '510107195403260028',
+        birthday: '1954-03-26', age: 72, mobile: '13700004412', province: '四川省', city: '成都市',
+        county: '武侯区', address: '', selfCare: '半自理'
+      },
+      staffGender: '随机分配', staffNote: '材料不完整，审核未通过。',
+      materials: [],
+      contact: { name: '郑女士', mobile: '13700004412', phone: '13700004412' },
+      emergency: { name: '', phone: '' },
+      note: '身份证明材料不清晰，请补充后重新预约。',
+      caregiver: null,
+      createdAt: '2026-11-18 13:10:00',
+      syncStatus: 'success', syncedAt: '2026-11-18 13:10:00',
+      timeline: [
+        { title: '服务申请已提交', desc: '照护顾问已收到居家照护需求，待评估后安排', time: '11-18 13:10:00' },
+        { title: '审核不通过', desc: '身份证明材料不清晰，请补充后重新预约', time: '11-18 15:40:00' }
+      ]
     }
   ]
 };
